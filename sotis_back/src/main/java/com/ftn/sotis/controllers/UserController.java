@@ -1,5 +1,8 @@
 package com.ftn.sotis.controllers;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,10 +13,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ftn.sotis.DTOs.LoginDTO;
@@ -24,6 +27,7 @@ import com.ftn.sotis.security.TokenUtils;
 import com.ftn.sotis.services.UserService;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:8080")
 @RequestMapping(value = "/user")
 public class UserController {
 
@@ -75,8 +79,31 @@ public class UserController {
 	
 	@RequestMapping( value = "/test", method = RequestMethod.GET)
 	public ResponseEntity<String> register(){
+		String s = null;
+		ProcessBuilder builder = new ProcessBuilder("python","kst/sotishelper.py");
 		
-		
+		try {
+			Process p = builder.start();
+			p.waitFor();
+			
+			 BufferedReader stdInput = new BufferedReader(new 
+	                 InputStreamReader(p.getInputStream()));
+
+            BufferedReader stdError = new BufferedReader(new 
+                 InputStreamReader(p.getErrorStream()));
+	        
+            System.out.println("Here is the standard output of the command:\n");
+            while ((s = stdInput.readLine()) != null) {
+                System.out.println(s);
+            }
+            
+            System.out.println("Here is the standard error of the command (if any):\n");
+            while ((s = stdError.readLine()) != null) {
+                System.out.println(s);
+            }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		
         return new ResponseEntity<String>("Successful register",HttpStatus.OK);
 	}

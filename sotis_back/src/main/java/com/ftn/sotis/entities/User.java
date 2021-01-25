@@ -10,15 +10,12 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Inheritance;
 import javax.persistence.OneToMany;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.ftn.sotis.enums.UserRoleEnum;
 
 
 @Entity
-@Inheritance
 public class User {
 	
 	@Id
@@ -40,7 +37,10 @@ public class User {
 	@Column(nullable = true)
 	private String lastName;
 	
-//	@Transient
+	@Column
+	private String studentId;
+	
+	@Column
 	private UserRoleEnum role;
 
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
@@ -50,11 +50,12 @@ public class User {
 		
 	}
 
-	public User(Long id, String username, String password) {
-		super();
+	public User(Long id, String username, String password, String studentId) {
+		this();
 		this.id = id;
 		this.username = username;
 		this.password = password;
+		this.studentId = studentId;
 	}
 
 	public Long getId() {
@@ -120,4 +121,13 @@ public class User {
 	public void setRole(UserRoleEnum role) {
 		this.role = role;
 	}
+
+	public String getStudentId() {
+		return studentId;
+	}
+
+	public void setStudentId(String studentId) {
+		this.studentId = studentId;
+	}
+	
 }

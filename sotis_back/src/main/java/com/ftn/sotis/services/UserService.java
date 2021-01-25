@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.ftn.sotis.entities.Authority;
 import com.ftn.sotis.entities.User;
 import com.ftn.sotis.entities.UserAuthority;
+import com.ftn.sotis.enums.UserRoleEnum;
 import com.ftn.sotis.exceptions.EntityAlreadyExistsException;
 import com.ftn.sotis.exceptions.InvalidDataException;
 import com.ftn.sotis.repositories.AuthorityRepository;
@@ -32,6 +33,7 @@ public class UserService {
 		valid = valid && !(user.getLastName() == null);
 		valid = valid && !(user.getEmail() == null);
 		valid = valid && !(user.getRole() == null);
+		valid = valid && !(user.getStudentId() == null && user.getRole() == UserRoleEnum.STUDENT_ROLE);
 		
 		if (!valid) {
 			throw new InvalidDataException("Input data not complete");
@@ -40,12 +42,11 @@ public class UserService {
 		UserAuthority authorities = new UserAuthority();
 		
 		Authority auth = authRepository.findByName(user.getRole().name());
-		
 		auth.getUserAuthorities().add(authorities);
 		authorities.setAuthority(auth);
 		authorities.setUser(user);
 		user.getUserAuthorities().add(authorities);
-
+		
 		BCryptPasswordEncoder enc = new BCryptPasswordEncoder();
 		user.setPassword(enc.encode(user.getPassword()));
 		userRepository.save(user);
