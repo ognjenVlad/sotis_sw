@@ -1,9 +1,9 @@
 package com.ftn.sotis.controllers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,21 +17,20 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ftn.sotis.DTOs.SubjectDTO;
-import com.ftn.sotis.DTOs.SubjectStudentsDTO;
+import com.ftn.sotis.DTOs.ExamDTO;
 import com.ftn.sotis.exceptions.EntityAlreadyExistsException;
 import com.ftn.sotis.exceptions.EntityDoesNotExistException;
 import com.ftn.sotis.exceptions.InvalidDataException;
 import com.ftn.sotis.security.TokenUtils;
-import com.ftn.sotis.services.SubjectService;
+import com.ftn.sotis.services.ExamService;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:8080")
-@RequestMapping(value = "/subject")
-public class SubjectController {
-	
+@RequestMapping(value = "/exam")
+public class ExamController {
+
 	@Autowired
-	private SubjectService subjectService;
+	private ExamService examService;
 	
 	@Autowired
 	TokenUtils jwt;
@@ -40,11 +39,9 @@ public class SubjectController {
     @RequestMapping(
             method = RequestMethod.PUT,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> addSubject(@RequestBody SubjectDTO subject, HttpServletRequest request) {
-		String token = request.getHeader("Auth-Token");
-		String username = jwt.getUsernameFromToken(token);
+    public ResponseEntity<String> addExam(@RequestBody ExamDTO examDto) {
     	try {
-			return new ResponseEntity<String>(subjectService.addSubject(subject,username), HttpStatus.OK);
+			return new ResponseEntity<String>(examService.addExam(examDto), HttpStatus.OK);
 		} catch (EntityAlreadyExistsException | InvalidDataException e) {
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
@@ -55,9 +52,9 @@ public class SubjectController {
     		value = "/{id}",
             method = RequestMethod.DELETE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> removeSubject(@PathVariable Long id) {
+    public ResponseEntity<String> removeExam(@PathVariable Long id) {
     	try {
-			return new ResponseEntity<String>(subjectService.removeSubject(id),HttpStatus.OK);
+			return new ResponseEntity<String>(examService.removeExam(id),HttpStatus.OK);
 		} catch (EntityDoesNotExistException e) {
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
@@ -68,9 +65,9 @@ public class SubjectController {
     		value = "/{id}",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> editSubject(@RequestBody SubjectDTO subject, @PathVariable Long id) {
+    public ResponseEntity<String> editExam(@RequestBody ExamDTO examDto, @PathVariable Long id) {
     	try {
-			return new ResponseEntity<String>(subjectService.editSubject(id, subject),HttpStatus.OK);
+			return new ResponseEntity<String>(examService.editExam(examDto, id),HttpStatus.OK);
 		} catch (EntityDoesNotExistException | InvalidDataException e) {
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
@@ -78,24 +75,27 @@ public class SubjectController {
 
 //	@PreAuthorize("hasAuthority('PROFESSOR_ROLE')")
     @RequestMapping(
-    		value = "/students/{id}",
+    		value = "/{id}",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<SubjectStudentsDTO> getSubjectStudents(@PathVariable Long id) {
+    public ResponseEntity<ExamDTO> getExam(@PathVariable Long id) {
     	try {
-			return new ResponseEntity<SubjectStudentsDTO>(subjectService.getSubjectStudents(id),HttpStatus.OK);
+			return new ResponseEntity<ExamDTO>(examService.getExam(id),HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
-			return new ResponseEntity<SubjectStudentsDTO>(new SubjectStudentsDTO(), HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<ExamDTO>(new ExamDTO(), HttpStatus.BAD_REQUEST);
 		}
     }
-
+	
 //	@PreAuthorize("hasAuthority('PROFESSOR_ROLE')")
     @RequestMapping(
+    		value = "/all/{id}",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<SubjectDTO>> getSubjects(HttpServletRequest request) {
-		String token = request.getHeader("Auth-Token");
-		String username = jwt.getUsernameFromToken(token);
-		return new ResponseEntity<List<SubjectDTO>>(subjectService.getMySubjects(username),HttpStatus.OK);
+    public ResponseEntity<List<ExamDTO>> getAllExams(@PathVariable Long id) {
+    	try {
+			return new ResponseEntity<List<ExamDTO>>(examService.getAllExams(id),HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<List<ExamDTO>>(new ArrayList<ExamDTO>(), HttpStatus.BAD_REQUEST);
+		}
     }
 }

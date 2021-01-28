@@ -10,6 +10,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 @Entity
 public class Exam {
@@ -24,6 +25,12 @@ public class Exam {
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<Question> questions;
 	
+	@OneToOne
+	private Graph expectedGraph;
+	
+	@OneToOne
+	private Graph calculatedGraph;
+	
 	public Exam(){
 		this.questions = new ArrayList<Question>();
 	}
@@ -34,7 +41,7 @@ public class Exam {
 	}
 	
 	public void addQuestion(Question question) {
-		this.addQuestion(question);
+		this.questions.add(question);
 	}
 
 	public void addQuestion(String text, ArrayList<Choice> choices) {

@@ -1,9 +1,12 @@
 package com.ftn.sotis.services;
 
+import java.util.ArrayList;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.ftn.sotis.DTOs.StudentDTO;
 import com.ftn.sotis.entities.Authority;
 import com.ftn.sotis.entities.User;
 import com.ftn.sotis.entities.UserAuthority;
@@ -57,8 +60,21 @@ public class UserService {
 		
 	}
 	
-	public void test() {
-		
+	public ArrayList<StudentDTO> getStudents() {
+		ArrayList<StudentDTO> retVal = new ArrayList<StudentDTO>();
+		for (User user : userRepository.findAll()) {
+			if (user.getRole().equals(UserRoleEnum.STUDENT_ROLE)) {
+				retVal.add(this.castToDTO(user));
+			}
+		}
+		return retVal;
 	}
 	
+	private StudentDTO castToDTO(User stud) {
+		StudentDTO retVal = new StudentDTO();
+		retVal.username = stud.getUsername();
+		retVal.index = stud.getStudentId();
+		return retVal;
+	}
+
 }

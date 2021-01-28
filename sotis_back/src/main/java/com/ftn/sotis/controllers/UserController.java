@@ -2,6 +2,7 @@ package com.ftn.sotis.controllers;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ftn.sotis.DTOs.LoginDTO;
+import com.ftn.sotis.DTOs.StudentDTO;
 import com.ftn.sotis.entities.User;
 import com.ftn.sotis.exceptions.EntityAlreadyExistsException;
 import com.ftn.sotis.exceptions.InvalidDataException;
@@ -64,7 +66,7 @@ public class UserController {
         }
 	}
 
-	@RequestMapping(value = "/register", method = RequestMethod.POST)
+//	@RequestMapping(value = "/register", method = RequestMethod.POST)
 	@PreAuthorize("hasAuthority('ADMIN_ROLE')")
 	public ResponseEntity<User> register(@RequestBody User user) {
 		User retVal = null;
@@ -77,7 +79,7 @@ public class UserController {
         return new ResponseEntity<User>(retVal,HttpStatus.OK);
 	}
 	
-	@RequestMapping( value = "/test", method = RequestMethod.GET)
+//	@RequestMapping( value = "/test", method = RequestMethod.GET)
 	public ResponseEntity<String> register(){
 		String s = null;
 		ProcessBuilder builder = new ProcessBuilder("python","kst/sotishelper.py");
@@ -106,5 +108,11 @@ public class UserController {
 		}
 		
         return new ResponseEntity<String>("Successful register",HttpStatus.OK);
+	}
+
+	@PreAuthorize("hasAuthority('PROFESSOR_ROLE')")
+	@RequestMapping( value = "/student", method = RequestMethod.GET)
+	public ResponseEntity<ArrayList<StudentDTO>> getStudents(){
+        return new ResponseEntity<ArrayList<StudentDTO>>(userService.getStudents(),HttpStatus.OK);
 	}
 }

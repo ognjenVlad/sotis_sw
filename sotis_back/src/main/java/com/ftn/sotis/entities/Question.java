@@ -33,7 +33,7 @@ public class Question {
 		this.text = text;
 	}
 	
-	Question(String text, ArrayList<Choice> choices){
+	public Question(String text, ArrayList<Choice> choices){
 		this();
 		this.text = text;
 		this.choices = choices;

@@ -2,7 +2,6 @@ package com.ftn.sotis.services;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeSet;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -12,14 +11,10 @@ import org.springframework.stereotype.Service;
 import com.ftn.sotis.DTOs.ChoiceDTO;
 import com.ftn.sotis.DTOs.ExamDTO;
 import com.ftn.sotis.DTOs.QuestionDTO;
-import com.ftn.sotis.DTOs.SubjectDTO;
-import com.ftn.sotis.DTOs.SubjectStudentsDTO;
 import com.ftn.sotis.entities.Choice;
 import com.ftn.sotis.entities.Exam;
 import com.ftn.sotis.entities.Question;
 import com.ftn.sotis.entities.Subject;
-import com.ftn.sotis.entities.User;
-import com.ftn.sotis.enums.UserRoleEnum;
 import com.ftn.sotis.exceptions.EntityAlreadyExistsException;
 import com.ftn.sotis.exceptions.EntityDoesNotExistException;
 import com.ftn.sotis.exceptions.InvalidDataException;
@@ -62,70 +57,67 @@ public class ExamService {
 		}
 		
 		subject.addExam(exam);
+		exam.setSubject(subject);
 		examRep.save(exam);
 		subRep.save(subject);
 		return "Successful";
 	}
 	
-	public String editExam(Subject subject) throws EntityDoesNotExistException, InvalidDataException {
-		Subject foundSubject;
-		if((foundSubject = subRep.findByTitle(subject.getTitle())) == null) {
-			throw new InvalidDataException("Subject with given title not found");
+	public String editExam(ExamDTO examDto, Long id) throws EntityDoesNotExistException, InvalidDataException {
+		Exam exam;
+		if((exam = examRep.findById(id).orElse(null)) == null)
+			throw new InvalidDataException("Exam with given id not found");
+		
+		for (Question q : exam.getQuestions()) {
+			questionRep.delete(q);
 		}
 		
-		foundSubject.getStudents().clear();
+		exam.getQuestions().clear();
+		ArrayList<Choice> choices;
 		
-		if (subject.getStudents() != null) {
-			for (User stud : subject.getStudents()) {
-				if(userRep.findByUsername(stud.getUsername()) != null) {
-					foundSubject.getStudents().add(userRep.findByUsername(stud.getUsername()));
-				}else {
-					throw new InvalidDataException("Student with given username " + stud.getUsername() + " not found");
+		if (examDto.questions != null) {
+			for (QuestionDTO question : examDto.questions) {
+				if (question.text == null) throw new InvalidDataException("Invalid data. Question text not given");
+				
+				choices = new ArrayList<Choice>();
+				for (ChoiceDTO choice : question.choices) {
+					if (choice.text == null) throw new InvalidDataException("Invalid data. Choice text not given");
+					if (choice.correct == null) throw new InvalidDataException("Invalid data. Choice correctness not given");
+					
+					choices.add(new Choice(choice.text, choice.correct));
 				}
+				exam.getQuestions().add(new Question(question.text, choices));
 			}
 		}
 		
-		subRep.save(foundSubject);
+		examRep.save(exam);
 		return "Successful";
 	}
 	
-	public String removeSubject(String title) throws EntityDoesNotExistException {
-		if (subRep.findByTitle(title)==null) {
+	public String removeExam(Long id) throws EntityDoesNotExistException {
+		if (examRep.findById(id).orElse(null) == null) {
 			throw new EntityDoesNotExistException("Failed");
 		}
 		
-		subRep.delete(subRep.findByTitle(title));
+		examRep.deleteById(id);
 
 		return "Successful";
 	}
 	
-	public SubjectStudentsDTO getSubjectStudents(String title) throws EntityNotFoundException {
-		SubjectStudentsDTO retVal = new SubjectStudentsDTO();
-		Subject foundSubject;
+	public ExamDTO getExam(Long id) {
+		Exam exam = examRep.findById(id).orElse(null);
 		
-		if ((foundSubject = subRep.findByTitle(title)) == null) throw new EntityNotFoundException("Subject with given title not found");
-
-		TreeSet<String> subjStudents = new TreeSet<String>();
-		for (User stud : foundSubject.getStudents()) {
-			subjStudents.add(stud.getUsername());
-			retVal.assigned.add(this.castToDTO(stud));
-		}
+		if (exam == null) throw new EntityNotFoundException("Exam with given id not found");
 		
-		for (User user : userRep.findAll()) {
-			// If it's actually student, and is not assigned to this subject
-			if (user.getRole().equals(UserRoleEnum.STUDENT_ROLE) && !subjStudents.contains(user.getUsername())) {
-				retVal.unassigned.add(this.castToDTO(user));
-			}
-		}
-		
-		return retVal;
+		return this.castToDTO(exam);
 	}
-	
-	public List<SubjectDTO> getAllSubjects(){
-		List<SubjectDTO> retVal = new ArrayList<SubjectDTO>();
 		
-		for (Subject sub : subRep.findAll()) {
-			retVal.add(this.castToDTO(sub));
+	public List<ExamDTO> getAllExams(Long id){
+		List<ExamDTO> retVal = new ArrayList<ExamDTO>();
+		
+		for (Exam exam : examRep.findAll()) {
+			if (!exam.getSubject().getId().equals(id)) continue;
+			retVal.add(this.castToDTO(exam));
 		}
 		
 		return retVal;
@@ -144,6 +136,29 @@ public class ExamService {
 		for (ChoiceDTO choiceDto : questionDto.choices) {
 			retVal.addChoice(choiceDto.text, choiceDto.correct);
 		}
+		return retVal;
+	}
+	
+	private ExamDTO castToDTO(Exam exam) {
+		ExamDTO retVal = new ExamDTO();
+		retVal.subjectTitle = exam.getSubject().getTitle();
+		
+		retVal.questions = new ArrayList<QuestionDTO>();
+		for (Question question : exam.getQuestions()) {
+			retVal.questions.add(this.castToDTO(question));
+		}
+		return retVal;
+	}
+	
+	private QuestionDTO castToDTO(Question question) {
+		QuestionDTO retVal = new QuestionDTO();
+		retVal.text = question.getText();
+		
+		retVal.choices = new ArrayList<ChoiceDTO>();
+		for (Choice choice : question.getChoices()) {
+			retVal.choices.add(new ChoiceDTO(choice.getText(), choice.getCorrect()));
+		}
+		
 		return retVal;
 	}
 }

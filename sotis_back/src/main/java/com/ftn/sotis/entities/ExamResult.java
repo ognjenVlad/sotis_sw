@@ -1,7 +1,6 @@
 package com.ftn.sotis.entities;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -82,13 +81,23 @@ public class ExamResult {
 	}
 	
 	public int[] getResultsArray() {
-		Collection.sort(this.answeres, new Comparator<QuestionAnswer>() {
-
+		this.answeres.sort(new Comparator<QuestionAnswer>() {
 			@Override
-			public int compare(QuestionAnswer q1, QuestionAnswer q2) {
-				return q1.getId().compareTo(q2.getId());
+			public int compare(QuestionAnswer qa1, QuestionAnswer qa2) {
+				return qa1.getId().compareTo(qa2.getId());
 			}
-		
 		});
+		
+		return this.getResultsInteger();
+	}
+	
+	private int[] getResultsInteger() {
+		int[] retVal = new int[this.answeres.size()];
+
+		for (int i = 0; i < this.answeres.size(); i++) {
+			retVal[i] = this.answeres.get(i).getCorrect() ? 1 : 0;
+		}
+		
+		return retVal;
 	}
 }

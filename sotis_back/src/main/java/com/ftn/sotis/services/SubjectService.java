@@ -31,60 +31,61 @@ public class SubjectService {
 	@Autowired
 	UserRepository userRep;
 
-	public String addSubject(Subject subject, String teacherUsername) throws EntityAlreadyExistsException, InvalidDataException {
-		if (subject.getTitle() == null) throw new EntityAlreadyExistsException("Failed");
+	public String addSubject(SubjectDTO subjectDto, String teacherUsername) throws EntityAlreadyExistsException, InvalidDataException {
+		if (subjectDto.title == null) throw new InvalidDataException("Title not defined");
 		
-		if (subRep.findByTitle(subject.getTitle())!=null) throw new InvalidDataException("Title not defined");
+		if (subRep.findByTitle(subjectDto.title)!=null) throw new EntityAlreadyExistsException("Subject with given title already exists");
 
-		User teacher = userRep.findByUsername(teacherUsername);
+		Subject subject = castFromDTO(subjectDto); 
+		subject.setTitle(subjectDto.title);
+		subject.setTeacher(userRep.findByUsername(teacherUsername));
+		subject.setDomain(new Domain(subject));
 		
-		Subject newSubject = new Subject(); 
-		newSubject.setDomain(new Domain(newSubject));
-		newSubject.setTeacher(teacher);
-		newSubject.setTitle(subject.getTitle());
-		
-		subRep.save(newSubject);
+		subRep.save(subject);
 		
 		return "Successful";
 	}
 	
-	public String editSubject(Subject subject) throws EntityDoesNotExistException, InvalidDataException {
-		Subject foundSubject;
-		if((foundSubject = subRep.findByTitle(subject.getTitle())) == null) {
+	public String editSubject(Long id, SubjectDTO subjectDto) throws EntityDoesNotExistException, InvalidDataException {
+		Subject subject;
+		
+		if ((subject = subRep.findById(id).orElse(null)) == null) {
 			throw new InvalidDataException("Subject with given title not found");
 		}
 		
-		foundSubject.getStudents().clear();
+		if (subjectDto.title == null) throw new InvalidDataException("Invalid data. Title not defined");
+		subject.setTitle(subjectDto.title);
+		subject.getStudents().clear();
 		
 		if (subject.getStudents() != null) {
-			for (User stud : subject.getStudents()) {
-				if(userRep.findByUsername(stud.getUsername()) != null) {
-					foundSubject.getStudents().add(userRep.findByUsername(stud.getUsername()));
+			for (StudentDTO stud : subjectDto.students) {
+				if(userRep.findByUsername(stud.username) != null) {
+					subject.getStudents().add(userRep.findByUsername(stud.username));
 				}else {
-					throw new InvalidDataException("Student with given username " + stud.getUsername() + " not found");
+					throw new InvalidDataException("Student with given username " + stud.username + " not found");
 				}
 			}
 		}
 		
-		subRep.save(foundSubject);
+		subRep.save(subject);
 		return "Successful";
 	}
 	
-	public String removeSubject(String title) throws EntityDoesNotExistException {
-		if (subRep.findByTitle(title)==null) {
+	public String removeSubject(Long id) throws EntityDoesNotExistException {
+		if (subRep.findById(id).orElse(null) == null) {
 			throw new EntityDoesNotExistException("Failed");
 		}
 		
-		subRep.delete(subRep.findByTitle(title));
+		subRep.delete(subRep.findById(id).orElse(null));
 
 		return "Successful";
 	}
 	
-	public SubjectStudentsDTO getSubjectStudents(String title) throws EntityNotFoundException {
+	public SubjectStudentsDTO getSubjectStudents(Long id) throws EntityNotFoundException {
 		SubjectStudentsDTO retVal = new SubjectStudentsDTO();
 		Subject foundSubject;
 		
-		if ((foundSubject = subRep.findByTitle(title)) == null) throw new EntityNotFoundException("Subject with given title not found");
+		if ((foundSubject = subRep.findById(id).orElse(null)) == null) throw new EntityNotFoundException("Subject with given title not found");
 
 		TreeSet<String> subjStudents = new TreeSet<String>();
 		for (User stud : foundSubject.getStudents()) {
@@ -102,7 +103,7 @@ public class SubjectService {
 		return retVal;
 	}
 	
-	public List<SubjectDTO> getAllSubjects(){
+	public List<SubjectDTO> getMySubjects(String username){
 		List<SubjectDTO> retVal = new ArrayList<SubjectDTO>();
 		
 		for (Subject sub : subRep.findAll()) {
@@ -123,6 +124,32 @@ public class SubjectService {
 		StudentDTO retVal = new StudentDTO();
 		retVal.username = stud.getUsername();
 		retVal.index = stud.getStudentId();
+		return retVal;
+	}
+	
+	
+	/**
+	 * Finds students in UserRepository and throws exception if one of them is not found
+	 * 
+	 * @param subjectDto
+	 * @return
+	 * @throws InvalidDataException
+	 */
+	private Subject castFromDTO(SubjectDTO subjectDto) throws InvalidDataException {
+		Subject retVal = new Subject();
+		User foundStud;
+				
+		if (subjectDto.students == null) return retVal;
+
+		for (StudentDTO stud : subjectDto.students) {
+			if ((foundStud = userRep.findByUsername(stud.username)) == null) {
+				throw new InvalidDataException("Student with given username not found");
+			}
+			else {
+				retVal.getStudents().add(foundStud);				
+			}
+		}
+		
 		return retVal;
 	}
 }
