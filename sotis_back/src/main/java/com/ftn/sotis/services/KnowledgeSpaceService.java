@@ -2,6 +2,7 @@ package com.ftn.sotis.services;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,7 +72,7 @@ public class KnowledgeSpaceService {
 			g.addEdge(temp_n1, temp_n2);
 			
             while ((s = stdInput.readLine()) != null) {
-    			pair = stdInput.readLine().split("\\.");
+    			pair = s.split("\\.");
     			temp_n1 = new Node(Long.parseLong(pair[0]));
     			temp_n2 = new Node(Long.parseLong(pair[1]));
     			g.addNode(temp_n1);
@@ -83,9 +84,47 @@ public class KnowledgeSpaceService {
 			e.printStackTrace();
 		}
 		
+		System.out.println(g.isValid());
 		return this.castToDTO(g);
 	}
 	
+	public ArrayList<Node> runPisaTestBfs() {
+		Graph g = new Graph();
+		String s = null;
+		ProcessBuilder builder = new ProcessBuilder("python","kst/pisaTest.py");
+		
+		try {
+			Process p = builder.start();
+			p.waitFor();
+			
+			BufferedReader stdInput = new BufferedReader(new 
+	                 InputStreamReader(p.getInputStream()));
+	        
+			String[] pair = new String[2];
+			pair = stdInput.readLine().split("\\.");
+			
+			Node temp_n1 = new Node(Long.parseLong(pair[0]));
+			Node temp_n2 = new Node(Long.parseLong(pair[1]));
+			
+			g.addNode(temp_n1);
+			g.addNode(temp_n2);
+			g.addEdge(temp_n1, temp_n2);
+			
+            while ((s = stdInput.readLine()) != null) {
+    			pair = s.split("\\.");
+    			temp_n1 = new Node(Long.parseLong(pair[0]));
+    			temp_n2 = new Node(Long.parseLong(pair[1]));
+    			g.addNode(temp_n1);
+    			g.addNode(temp_n2);
+    			g.addEdge(temp_n1, temp_n2);
+            }
+            
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return g.getNextBfs(0L);
+	}
 	
 	public GraphDTO castToDTO(Graph g) {
 		GraphDTO retVal = new GraphDTO();
