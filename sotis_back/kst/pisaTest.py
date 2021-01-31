@@ -4,9 +4,8 @@ import os
 from learning_spaces.kst.iita import iita
 
 if __name__ == '__main__':
-    f = open('kst/pisa.txt','r')
+    f = open('pisa.txt','r')
     column = f.readline().split()
-
 
     columns = []
 
@@ -20,10 +19,12 @@ if __name__ == '__main__':
             columns[i].append(int(val))
 
     required_format = {}
+
     for i, col in enumerate(column):
         required_format[str(col)] = columns[i]
 
     data_frame = pd.DataFrame(required_format)
+    print (required_format)
     response = iita(data_frame, v=1)
 
     for pair in response['implications']:

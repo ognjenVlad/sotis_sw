@@ -2,7 +2,6 @@ package com.ftn.sotis.entities;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -97,20 +96,36 @@ public class Graph {
 		return true;
 	}
 	
+	public Question[] getNextQuestion(Exam exam, Integer questionsAnswered) {
+		this.sortNodesBfsOrder();
+		
+		// TODO: Fix logic of getting [ 'current' , 'next' ] questions
+		
+		int questionsCounter = 0;
+		for (Node n : this.bfsNodesSorted) {
+			if (exam.getQuestions().contains(n.getQuestion())) {
+				if (questionsCounter < questionsAnswered) {
+					questionsCounter++;
+				}else {
+					
+				}
+			}
+		}
+
+		return null;
+	}
+	
 	private void sortNodesBfsOrder() {
 		this.bfsNodesSorted.add(this.root);
 		this.getBfsGeneration(root);
 		
-		Iterator<Node> iter = this.bfsNodesSorted.iterator();
-		iter.next();
-		while (iter.hasNext()) {
-			getBfsGeneration(iter.next());
+		for (int i = 1; i < this.bfsNodesSorted.size(); i++) {
+			getBfsGeneration(this.bfsNodesSorted.get(i));
 		}
 	}
 	
+	
 	private void getBfsGeneration(Node node) {
-		// TODO :  Implement actual BFS method
-		
 		ArrayList<Edge> currentLevelVertices = new ArrayList<Edge>();
 		ArrayList<Node> currentLevelNodes = new ArrayList<Node>();
 		
@@ -135,11 +150,6 @@ public class Graph {
 			}
 		}
 		
-	}
-	
-	public ArrayList<Node> getNextBfs(Long current) {
-		this.sortNodesBfsOrder();
-		return this.bfsNodesSorted;
 	}
 	
 	/**
@@ -196,12 +206,24 @@ public class Graph {
 	 * @param other
 	 * @return
 	 */
-	public Graph getGraphDifference(Graph other) {
+	public Graph getSubgraphDifference(Graph other) {
 		Graph retVal = new Graph();
-		retVal.setNodes((ArrayList<Node>)this.nodes);
+		ArrayList<Edge> sameNodeEdges = new ArrayList<Edge>();
+		
+		for (int i = 0; i < other.nodes.size()-1; i++) {
+			for (int j = i+1; j < other.nodes.size(); j++) {
+				for (Edge e : this.edges) {
+					if (e.isBetweenBiderction(other.nodes.get(i), other.nodes.get(i)) && !sameNodeEdges.contains(e)) {
+						sameNodeEdges.add(e);
+					}
+				}
+			}
+		}
+		
+		retVal.setNodes(this.nodes);
 		
 		for (Edge e : other.getEdges()) {
-			if (this.edges.contains(e)) { 
+			if (sameNodeEdges.contains(e)) { 
 				e.setStatus(EdgeStatusEnum.SAME_EDGE);
 			}
 			else {
@@ -211,9 +233,16 @@ public class Graph {
 		
 		retVal.setEdges((ArrayList<Edge>)other.getEdges());
 		
-		for (Edge e : this.getEdges()) {
+		for (Edge e : sameNodeEdges) {
 			if (!other.edges.contains(e)) {
 				e.setStatus(EdgeStatusEnum.REMOVED_EDGE);
+				retVal.getEdges().add(e);
+			}
+		}
+		
+		for (Edge e : this.edges) {
+			if (!retVal.getEdges().contains(e)) {
+				e.setStatus(EdgeStatusEnum.NONE);
 				retVal.getEdges().add(e);
 			}
 		}
@@ -250,7 +279,7 @@ public class Graph {
 		return nodes;
 	}
 
-	public void setNodes(ArrayList<Node> nodes) {
+	public void setNodes(List<Node> nodes) {
 		this.nodes = nodes;
 	}
 

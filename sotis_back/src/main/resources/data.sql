@@ -28,8 +28,6 @@ insert into user_authority (user_id, authority_id) values (10, 1);
 
 
 insert into subject (title, teacher_id) values ('TestPredmet', 2);
-insert into domain (subject_id) values (1);
-update subject set domain_id=1 where id=1;
 
 insert into choice (correct, text) values (true, 'pitanje1choice1');
 insert into choice (correct, text) values (true, 'pitanje1choice2');
@@ -48,6 +46,23 @@ insert into question (text) values ('pitanje3');
 insert into question (text) values ('pitanje4');
 insert into question (text) values ('pitanje5');
 
+
+insert into node (question_id) values (1);
+insert into node (question_id) values (2);
+insert into node (question_id) values (3);
+insert into node (question_id) values (4);
+insert into node (question_id) values (5);
+
+insert into graph (root_id) values (1);
+insert into graph_nodes (graph_id, nodes_id) values (1,1);
+insert into graph_nodes (graph_id, nodes_id) values (1,2);
+insert into graph_nodes (graph_id, nodes_id) values (1,3);
+insert into graph_nodes (graph_id, nodes_id) values (1,4);
+insert into graph_nodes (graph_id, nodes_id) values (1,5);
+
+insert into domain (expected_graph_id, subject_id) values (1,1);
+update subject set domain_id = 1 where id = 1;
+
 insert into question_choices (question_id,choices_id) values (1,1);
 insert into question_choices (question_id,choices_id) values (1,2);
 insert into question_choices (question_id,choices_id) values (2,3);
@@ -58,12 +73,6 @@ insert into question_choices (question_id,choices_id) values (4,7);
 insert into question_choices (question_id,choices_id) values (4,8);
 insert into question_choices (question_id,choices_id) values (5,9);
 insert into question_choices (question_id,choices_id) values (5,10);
-
-insert into domain_questions (domain_id, questions_id) values (1,1);
-insert into domain_questions (domain_id, questions_id) values (1,2);
-insert into domain_questions (domain_id, questions_id) values (1,3);
-insert into domain_questions (domain_id, questions_id) values (1,4);
-insert into domain_questions (domain_id, questions_id) values (1,5);
 
 insert into exam (subject_id) values (1);
 insert into subject_exams (subject_id, exams_id) values (1,1);

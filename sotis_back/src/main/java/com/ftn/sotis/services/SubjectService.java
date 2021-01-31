@@ -13,6 +13,7 @@ import com.ftn.sotis.DTOs.StudentDTO;
 import com.ftn.sotis.DTOs.SubjectDTO;
 import com.ftn.sotis.DTOs.SubjectStudentsDTO;
 import com.ftn.sotis.entities.Domain;
+import com.ftn.sotis.entities.Graph;
 import com.ftn.sotis.entities.Subject;
 import com.ftn.sotis.entities.User;
 import com.ftn.sotis.enums.UserRoleEnum;
@@ -40,6 +41,7 @@ public class SubjectService {
 		subject.setTitle(subjectDto.title);
 		subject.setTeacher(userRep.findByUsername(teacherUsername));
 		subject.setDomain(new Domain(subject));
+		subject.getDomain().setExpectedGraph(new Graph());
 		
 		subRep.save(subject);
 		

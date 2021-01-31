@@ -65,6 +65,16 @@ public class Edge {
 		return false;
 	}
 	
+	public boolean isBetweenBiderction(Node n1, Node n2) {
+		if (this.source.equals(n1) && this.destination.equals(n2)) {
+			return true;
+		}
+		if (this.source.equals(n2) && this.destination.equals(n1)) {
+			return true;
+		}
+		return false;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

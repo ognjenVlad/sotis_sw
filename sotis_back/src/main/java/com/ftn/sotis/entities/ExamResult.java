@@ -90,21 +90,39 @@ public class ExamResult {
 		this.answeres.sort(new Comparator<QuestionAnswer>() {
 			@Override
 			public int compare(QuestionAnswer qa1, QuestionAnswer qa2) {
-				return qa1.getId().compareTo(qa2.getId());
+				return qa1.getQuestion().getId().compareTo(qa2.getQuestion().getId());
 			}
 		});
+		
 		
 		return this.getResultsString();
 	}
 	
+	public String getQuestionIdsOrdered() {
+		this.answeres.sort(new Comparator<QuestionAnswer>() {
+			@Override
+			public int compare(QuestionAnswer qa1, QuestionAnswer qa2) {
+				return qa1.getQuestion().getId().compareTo(qa2.getQuestion().getId());
+			}
+		});
+		
+		String retVal = "";
+		for (QuestionAnswer qa : this.answeres) {
+			retVal = retVal + Long.toString(qa.getQuestion().getId()) + ",";
+		}
+		
+		retVal = retVal.substring(0, retVal.length() -1);
+		return retVal;
+	}
+	
 	private String getResultsString() {
-		String retVal = "(";
+		String retVal = "";
 
 		for (int i = 0; i < this.answeres.size(); i++) {
 			retVal = retVal + (this.answeres.get(i).getCorrect() ? "1" : "0") + ",";
 		}
 		
-		retVal = retVal.substring(0, retVal.length() -1) + ")";
+		retVal = retVal.substring(0, retVal.length() -1);
 		return retVal;
 	}
 

@@ -12,7 +12,10 @@ import com.ftn.sotis.DTOs.ChoiceDTO;
 import com.ftn.sotis.DTOs.ExamDTO;
 import com.ftn.sotis.DTOs.QuestionDTO;
 import com.ftn.sotis.entities.Choice;
+import com.ftn.sotis.entities.Domain;
 import com.ftn.sotis.entities.Exam;
+import com.ftn.sotis.entities.Graph;
+import com.ftn.sotis.entities.Node;
 import com.ftn.sotis.entities.Question;
 import com.ftn.sotis.entities.Subject;
 import com.ftn.sotis.exceptions.EntityAlreadyExistsException;
@@ -46,20 +49,21 @@ public class ExamService {
 		Subject subject;
 		if ((subject = subRep.findByTitle(examDto.subjectTitle)) == null) throw new InvalidDataException("Subjec with given title not found");
 
+		Domain domain = subject.getDomain();
 		Exam exam = this.castFromDTO(examDto);
 		
+		Graph g = domain.getExpectedGraph();
 		for (Question q : exam.getQuestions()) {
 			if (q.getText() == null) throw new InvalidDataException("Question text not given");
 			for (Choice c : q.getChoices()) {
 				if (c.getText() == null) throw new InvalidDataException("Choice text not given");
 				if (c.getCorrect() == null) throw new InvalidDataException("Choice correctness not given");
 			}
-			subject.addQuestionToDomain(q);
+			g.addNode(new Node(q));
 		}
 		
 		subject.addExam(exam);
 		exam.setSubject(subject);
-		examRep.save(exam);
 		subRep.save(subject);
 		return "Successful";
 	}
@@ -153,6 +157,7 @@ public class ExamService {
 	
 	private ExamDTO castToDTO(Exam exam) {
 		ExamDTO retVal = new ExamDTO();
+		retVal.subjectId = exam.getSubject().getId();
 		retVal.subjectTitle = exam.getSubject().getTitle();
 		retVal.id = exam.getId();
 		retVal.questions = new ArrayList<QuestionDTO>();
