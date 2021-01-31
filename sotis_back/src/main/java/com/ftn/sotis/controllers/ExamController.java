@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,7 +24,7 @@ import com.ftn.sotis.security.TokenUtils;
 import com.ftn.sotis.services.ExamService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin
 @RequestMapping(value = "/exam")
 public class ExamController {
 
@@ -62,12 +61,11 @@ public class ExamController {
 
 //	@PreAuthorize("hasAuthority('PROFESSOR_ROLE')")
     @RequestMapping(
-    		value = "/{id}",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> editExam(@RequestBody ExamDTO examDto, @PathVariable Long id) {
+    public ResponseEntity<String> editExam(@RequestBody ExamDTO examDto) {
     	try {
-			return new ResponseEntity<String>(examService.editExam(examDto, id),HttpStatus.OK);
+			return new ResponseEntity<String>(examService.editExam(examDto),HttpStatus.OK);
 		} catch (EntityDoesNotExistException | InvalidDataException e) {
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
@@ -94,6 +92,19 @@ public class ExamController {
     public ResponseEntity<List<ExamDTO>> getAllExams(@PathVariable Long id) {
     	try {
 			return new ResponseEntity<List<ExamDTO>>(examService.getAllExams(id),HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			return new ResponseEntity<List<ExamDTO>>(new ArrayList<ExamDTO>(), HttpStatus.BAD_REQUEST);
+		}
+    }
+
+//	@PreAuthorize("hasAuthority('PROFESSOR_ROLE')")
+    @RequestMapping(
+    		value = "/all",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<ExamDTO>> getAllExams() {
+    	try {
+			return new ResponseEntity<List<ExamDTO>>(examService.getAll(),HttpStatus.OK);
 		} catch (EntityNotFoundException e) {
 			return new ResponseEntity<List<ExamDTO>>(new ArrayList<ExamDTO>(), HttpStatus.BAD_REQUEST);
 		}

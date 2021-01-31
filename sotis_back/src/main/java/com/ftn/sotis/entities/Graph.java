@@ -2,17 +2,17 @@ package com.ftn.sotis.entities;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.Transient;
 
 import com.ftn.sotis.enums.EdgeStatusEnum;
 
@@ -23,15 +23,16 @@ public class Graph {
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
 	private Long id;
 	
-	@ManyToMany
+	@ManyToMany(cascade = CascadeType.ALL)
 	private List<Node> nodes;
 	
 	@OneToOne
 	private Node root;
 	
-	@ManyToMany
+	@ManyToMany(cascade = CascadeType.ALL)
 	private List<Edge> edges;
 	
+	@Transient
 	private ArrayList<Node> bfsNodesSorted = new ArrayList<Node>();
 
 	public Graph() {
@@ -88,7 +89,9 @@ public class Graph {
 			root = node;
 			this.nodes.add(node);
 		}
-		if (this.nodes.contains(node)) return false;
+		if (this.nodes.contains(node)) { 
+			return false;
+		}
 		
 		this.nodes.add(node);
 		return true;
@@ -145,39 +148,46 @@ public class Graph {
 	 * @return
 	 */
 	public boolean isValid() {
-		Set<Edge> visited = new HashSet<Edge>();
-		ArrayList<Edge> toVisit = new ArrayList<Edge>();
-		Edge temp;
-		
-		for (Edge e : edges) {
-			if (e.getSource().equals(this.root)) {
-				toVisit.add(e);
+		ArrayList<Node> visited = new ArrayList<Node>();
+		visited.add(this.root);
+		// Test it
+		return !this.isCyclic(root, visited) && isConnected();
+	}
+	
+	private boolean isConnected() {
+		Boolean found;
+		for (Node n : this.nodes) {
+			found = false;
+			for (Edge e : this.edges) {
+				if (e.contains(n)) found = true;
 			}
-		}
-		
-		for(int i = 0; i < toVisit.size(); i++) {
-			temp = toVisit.get(i);
-			
-			if (visited.contains(temp)) {
-				for (Edge edge : visited) {
-					System.out.println(edge.getSource().getId() + " -- " + edge.getDestination().getId());
-				}
-				System.out.println("Temp:" + temp.getSource().getId() + " -- " + temp.getDestination().getId());
-				return false;
-			}
-			else {
-				visited.add(temp);
-			}
-			for (Edge e : edges) {
-				if (e.getSource().equals(temp.getDestination())) {
-					toVisit.add(e);
-				}
-			}
-			
+			if (!found) return false;
 		}
 		
 		return true;
 	}
+	
+	private boolean isCyclic(Node node, ArrayList<Node> visitedNodes) { 
+		
+		ArrayList<Edge> toVisit = new ArrayList<Edge>();
+		
+		for (Edge e : this.edges) {
+			if (e.getSource().equals(node)) {
+				toVisit.add(e);
+			}
+		}
+		
+		for (Edge e : toVisit) {
+			if (visitedNodes.contains(e.getDestination())) {
+				return true;
+			}
+			visitedNodes.add(e.getDestination());
+			if (this.isCyclic(e.getDestination(), visitedNodes)) return true;
+			visitedNodes.remove(e.getDestination());
+		}
+		
+		return false;
+	} 
 	
 	/**
 	 * Return new graph with edges from both this and other graph.

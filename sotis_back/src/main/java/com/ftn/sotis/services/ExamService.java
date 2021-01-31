@@ -54,6 +54,7 @@ public class ExamService {
 				if (c.getText() == null) throw new InvalidDataException("Choice text not given");
 				if (c.getCorrect() == null) throw new InvalidDataException("Choice correctness not given");
 			}
+			subject.addQuestionToDomain(q);
 		}
 		
 		subject.addExam(exam);
@@ -63,8 +64,9 @@ public class ExamService {
 		return "Successful";
 	}
 	
-	public String editExam(ExamDTO examDto, Long id) throws EntityDoesNotExistException, InvalidDataException {
+	public String editExam(ExamDTO examDto) throws EntityDoesNotExistException, InvalidDataException {
 		Exam exam;
+		Long id = examDto.id;
 		if((exam = examRep.findById(id).orElse(null)) == null)
 			throw new InvalidDataException("Exam with given id not found");
 		
@@ -122,6 +124,16 @@ public class ExamService {
 		
 		return retVal;
 	}
+	
+	public List<ExamDTO> getAll(){
+		List<ExamDTO> retVal = new ArrayList<ExamDTO>();
+		
+		for (Exam exam : examRep.findAll()) {
+			retVal.add(this.castToDTO(exam));
+		}
+		
+		return retVal;
+	}
 
 	private Exam castFromDTO(ExamDTO examDto) {
 		Exam retVal = new Exam();
@@ -142,7 +154,7 @@ public class ExamService {
 	private ExamDTO castToDTO(Exam exam) {
 		ExamDTO retVal = new ExamDTO();
 		retVal.subjectTitle = exam.getSubject().getTitle();
-		
+		retVal.id = exam.getId();
 		retVal.questions = new ArrayList<QuestionDTO>();
 		for (Question question : exam.getQuestions()) {
 			retVal.questions.add(this.castToDTO(question));

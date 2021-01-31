@@ -5,6 +5,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 
 import com.ftn.sotis.enums.EdgeStatusEnum;
 
@@ -21,6 +22,7 @@ public class Edge {
 	@ManyToOne
 	private Node destination;
 	
+	@Transient
 	private EdgeStatusEnum status;
 	
 	public Edge() {

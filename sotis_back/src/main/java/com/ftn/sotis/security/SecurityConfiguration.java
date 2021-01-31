@@ -66,18 +66,19 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity httpSecurity) throws Exception {
 		httpSecurity
 			.csrf().disable()
-			.cors().and()
 			.sessionManagement()
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 				.and()
 			.formLogin()
 				.and()
 			.authorizeRequests()
-//				.antMatchers(HttpMethod.OPTIONS,"/**")
-//					.permitAll()
-				.antMatchers("/**").
-					permitAll();
-//				.anyRequest().authenticated();
+				.antMatchers(HttpMethod.OPTIONS,"/**")
+					.permitAll()
+				.antMatchers("/user/login").
+					permitAll()
+//				.antMatchers("/**").
+//					permitAll();
+				.anyRequest().authenticated();
 				//if we use AngularJS on client side
 				//.and().csrf().csrfTokenRepository(csrfTokenRepository()); 
 		// Custom JWT based authentication
@@ -91,10 +92,4 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
         web.ignoring().antMatchers(HttpMethod.OPTIONS, "/**");
     }
 	
-    @Bean
-    CorsConfigurationSource corsConfigurationSource() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
-        return (CorsConfigurationSource) source;
-    }
 }

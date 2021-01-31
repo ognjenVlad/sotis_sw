@@ -74,6 +74,8 @@ public class UserService {
 		StudentDTO retVal = new StudentDTO();
 		retVal.username = stud.getUsername();
 		retVal.index = stud.getStudentId();
+		retVal.firstName = stud.getFirstName();
+		retVal.lastName = stud.getLastName();
 		return retVal;
 	}
 

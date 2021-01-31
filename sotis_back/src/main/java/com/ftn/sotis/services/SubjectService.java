@@ -46,9 +46,11 @@ public class SubjectService {
 		return "Successful";
 	}
 	
-	public String editSubject(Long id, SubjectDTO subjectDto) throws EntityDoesNotExistException, InvalidDataException {
+	public String editSubject(SubjectDTO subjectDto) throws EntityDoesNotExistException, InvalidDataException {
 		Subject subject;
+		Long id = subjectDto.id;
 		
+		if (id == null) throw new InvalidDataException("Given ID is not defined");
 		if ((subject = subRep.findById(id).orElse(null)) == null) {
 			throw new InvalidDataException("Subject with given title not found");
 		}
@@ -71,7 +73,8 @@ public class SubjectService {
 		return "Successful";
 	}
 	
-	public String removeSubject(Long id) throws EntityDoesNotExistException {
+	public String removeSubject(Long id) throws EntityDoesNotExistException, InvalidDataException {
+		if (id == null) throw new InvalidDataException("Given ID is not defined");
 		if (subRep.findById(id).orElse(null) == null) {
 			throw new EntityDoesNotExistException("Failed");
 		}
@@ -115,8 +118,13 @@ public class SubjectService {
 
 	private SubjectDTO castToDTO(Subject sub) {
 		SubjectDTO retVal = new SubjectDTO();
+		retVal.id = sub.getId();
 		retVal.title = sub.getTitle();
 		retVal.teacher = sub.getTeacher() == null ? "" : sub.getTeacher().getUsername();
+		
+		for (User stud : sub.getStudents()) {
+			retVal.students.add(this.castToDTO(stud));
+		}
 		return retVal;
 	}
 	

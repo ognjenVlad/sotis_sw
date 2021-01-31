@@ -30,7 +30,7 @@ public class Subject {
 	@Column(nullable = false)
 	private String title;
 	
-	@OneToMany(fetch = FetchType.LAZY)
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
 	private List<Exam> exams;
 	
 	@OneToOne(cascade = CascadeType.ALL)
@@ -45,6 +45,10 @@ public class Subject {
 		this();
 		this.title = title;
 		this.teacher = teacher;
+	}
+
+	public void addQuestionToDomain(Question question) {
+		this.domain.getQuestions().add(question);
 	}
 
 	public void addExam(Exam exam) {
@@ -97,6 +101,5 @@ public class Subject {
 
 	public void setDomain(Domain domain) {
 		this.domain = domain;
-	}
-	
+	}	
 }

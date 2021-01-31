@@ -26,7 +26,8 @@ import com.ftn.sotis.security.TokenUtils;
 import com.ftn.sotis.services.SubjectService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin
+//@CrossOrigin(origins = "192.168.0.12:8080")
 @RequestMapping(value = "/subject")
 public class SubjectController {
 	
@@ -43,6 +44,7 @@ public class SubjectController {
     public ResponseEntity<String> addSubject(@RequestBody SubjectDTO subject, HttpServletRequest request) {
 		String token = request.getHeader("Auth-Token");
 		String username = jwt.getUsernameFromToken(token);
+		
     	try {
 			return new ResponseEntity<String>(subjectService.addSubject(subject,username), HttpStatus.OK);
 		} catch (EntityAlreadyExistsException | InvalidDataException e) {
@@ -58,19 +60,18 @@ public class SubjectController {
     public ResponseEntity<String> removeSubject(@PathVariable Long id) {
     	try {
 			return new ResponseEntity<String>(subjectService.removeSubject(id),HttpStatus.OK);
-		} catch (EntityDoesNotExistException e) {
+		} catch (EntityDoesNotExistException | InvalidDataException e) {
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
     }
 
 //	@PreAuthorize("hasAuthority('PROFESSOR_ROLE')")
     @RequestMapping(
-    		value = "/{id}",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> editSubject(@RequestBody SubjectDTO subject, @PathVariable Long id) {
+    public ResponseEntity<String> editSubject(@RequestBody SubjectDTO subject) {
     	try {
-			return new ResponseEntity<String>(subjectService.editSubject(id, subject),HttpStatus.OK);
+			return new ResponseEntity<String>(subjectService.editSubject(subject),HttpStatus.OK);
 		} catch (EntityDoesNotExistException | InvalidDataException e) {
 			return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}

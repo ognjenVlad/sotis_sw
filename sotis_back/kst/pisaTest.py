@@ -1,7 +1,6 @@
 import pandas as pd
 from pip._vendor.pyparsing import removeQuotes
 import os
-
 from learning_spaces.kst.iita import iita
 
 if __name__ == '__main__':

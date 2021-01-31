@@ -29,7 +29,7 @@ import com.ftn.sotis.security.TokenUtils;
 import com.ftn.sotis.services.UserService;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:8080")
+@CrossOrigin
 @RequestMapping(value = "/user")
 public class UserController {
 

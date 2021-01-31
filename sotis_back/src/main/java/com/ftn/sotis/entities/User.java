@@ -11,6 +11,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 
 import com.ftn.sotis.enums.UserRoleEnum;
 
@@ -36,6 +37,9 @@ public class User {
 	
 	@Column(nullable = true)
 	private String lastName;
+	
+	@OneToOne
+	private ExamResult activeExam;
 	
 	@Column
 	private String studentId;
@@ -128,6 +132,18 @@ public class User {
 
 	public void setStudentId(String studentId) {
 		this.studentId = studentId;
+	}
+	
+	public void answerQuestion(QuestionAnswer questionAnswer) {
+		this.activeExam.addAnswer(questionAnswer);
+	}
+
+	public ExamResult getActiveExam() {
+		return activeExam;
+	}
+
+	public void setActiveExam(ExamResult activeExam) {
+		this.activeExam = activeExam;
 	}
 	
 }

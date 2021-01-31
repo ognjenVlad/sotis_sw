@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,6 +31,9 @@ public class ExamResult {
 	@OneToMany
 	private List<QuestionAnswer> answeres;
 	
+	@Column
+	private Integer questionsAnswered;
+	
 	public ExamResult() {
 		this.answeres = new ArrayList<QuestionAnswer>();
 	}
@@ -38,9 +42,11 @@ public class ExamResult {
 		this();
 		this.exam = exam;
 		this.student = student;
+		this.questionsAnswered = 0;
 	}
 	
 	public void addAnswer(QuestionAnswer answer) {
+		this.questionsAnswered = this.questionsAnswered + 1;
 		this.answeres.add(answer);
 	}
 	
@@ -80,7 +86,7 @@ public class ExamResult {
 		this.answeres = answeres;
 	}
 	
-	public int[] getResultsArray() {
+	public String getResultsArray() {
 		this.answeres.sort(new Comparator<QuestionAnswer>() {
 			@Override
 			public int compare(QuestionAnswer qa1, QuestionAnswer qa2) {
@@ -88,16 +94,29 @@ public class ExamResult {
 			}
 		});
 		
-		return this.getResultsInteger();
+		return this.getResultsString();
 	}
 	
-	private int[] getResultsInteger() {
-		int[] retVal = new int[this.answeres.size()];
+	private String getResultsString() {
+		String retVal = "(";
 
 		for (int i = 0; i < this.answeres.size(); i++) {
-			retVal[i] = this.answeres.get(i).getCorrect() ? 1 : 0;
+			retVal = retVal + (this.answeres.get(i).getCorrect() ? "1" : "0") + ",";
 		}
 		
+		retVal = retVal.substring(0, retVal.length() -1) + ")";
 		return retVal;
+	}
+
+	public Integer getQuestionsAnswered() {
+		return questionsAnswered;
+	}
+
+	public void setQuestionsAnswered(Integer questionsAnswered) {
+		this.questionsAnswered = questionsAnswered;
+	}
+	
+	public boolean isFinished() {
+		return this.questionsAnswered == this.exam.getQuestions().size(); 
 	}
 }

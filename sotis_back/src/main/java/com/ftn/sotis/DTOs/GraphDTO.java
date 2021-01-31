@@ -11,4 +11,5 @@ public class GraphDTO {
 		this.nodes = new ArrayList<NodeDTO>();
 		this.edges = new ArrayList<EdgeDTO>();
 	}
+	
 }
