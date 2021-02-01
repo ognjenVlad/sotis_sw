@@ -24,7 +24,7 @@ export default {
 }
 </script>
 
-<style style="scss">
+<style lang="scss">
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -33,7 +33,9 @@ export default {
   color: #2c3e50;
 }
 
-a {
-  color: white !important;
+.navbar, .btn {
+  a {
+    color: white !important;
+  }
 }
 </style>

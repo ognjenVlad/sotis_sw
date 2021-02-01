@@ -15,7 +15,7 @@
       Subject created successfully!
     </div>
     <div class="alert alert-danger message" role="alert" v-if="showErrors">
-      Something went wrong!
+      {{error}}
     </div>
   </div>
 </template>
@@ -27,15 +27,19 @@ export default {
     return {
       title: '',
       result: null,
-      showErrors: false
+      showErrors: false,
+      error: 'Something went wrong!'
     }
   },
   methods: {
     async createSubject () {
       try {
-        this.result = await this.$store.dispatch('ADD_DOMAIN', {axios: this.axios, title: this.title})
+        this.result = await this.$store.dispatch('ADD_SUBJECT', {axios: this.axios, title: this.title})
+        this.title = ''
+        this.showErrors = false
       } catch (e) {
         this.showErrors = true
+        this.error = e.response.data
       }
     }
   },

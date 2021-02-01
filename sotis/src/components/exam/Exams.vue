@@ -1,22 +1,19 @@
 <template>
   <div>
-    <b-button>Create new exam</b-button>
+    <b-button style="margin: 2rem"><router-link :to="{ path: 'new-exam' }">Create new exam</router-link></b-button>
     <b-table small :fields="fields" :items="exams" responsive="sm">
-      <template #cell(index)="data">
-        {{ data.index + 1 }}
+      <template #cell(ID)="data">
+        {{ data.item.id }}
       </template>
 
-      <template #cell(domain)="data">
-        {{data.item.title}}
+      <template #cell(subjectTitle)="data">
+        {{data.item.subjectTitle}}
       </template>
 
-      <template #cell(subject)="data">
-        {{ data.item.subject_title }}
-      </template>
-
-      <template #cell(actions)>
-        <b-button style="margin-right: 10px">Show</b-button>
-        <b-button variant="outline-primary">Add question</b-button>
+      <template #cell(actions)="data">
+        <b-button style="margin-right: 10px"><router-link :to="{ path: 'exam', query: { 'exam-id': data.item.id  }}">Edit Exam</router-link></b-button>
+        <b-button style="margin-right: 10px" v-if="false" variant="danger" @click="deleteExam(data.item.id)">Delete Exam</b-button>
+        <b-button style="margin-right: 10px" variant="info" @click="takeExam(data.item.id)">Take Exam</b-button>
       </template>
     </b-table>
   </div>
@@ -27,21 +24,31 @@ export default {
   data () {
     return {
       fields: [
-        'index',
-        {key: 'domain', label: 'Domain title'},
-        {key: 'subject', label: 'Subject title'},
+        'ID',
+        {key: 'subjectTitle', label: 'Subject'},
         'actions'
       ],
     }
   },
   computed: {
     exams () {
-      return [{title: 'Naziv domena', subject_title: 'Naziv predmeta', actions: ''}]
-      // return this.$store.getters['domains']()
+      return this.$store.getters['exams']()
+    }
+  },
+  methods: {
+    async deleteExam (id) {
+      try {
+        await this.$store.dispatch('DELETE_EXAM', {axios:this.axios, id: id})
+      } catch (e) {
+        console.log(e)
+      }
+    },
+    takeExam(id) {
+      this.$router.push({path:'/test', query: { 'exam-id': id}})
     }
   },
   created() {
-    // this.$store.dispatch('LOAD_EXAMS', this.axios)
+    this.$store.dispatch('LOAD_EXAMS', this.axios)
   }
 };
 </script>
