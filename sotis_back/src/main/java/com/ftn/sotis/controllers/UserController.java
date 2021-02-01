@@ -1,8 +1,8 @@
 package com.ftn.sotis.controllers;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -44,6 +44,9 @@ public class UserController {
 		
 	@Autowired
 	TokenUtils tokenUtils;
+	
+	@Autowired
+	TokenUtils jwt;
 
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public ResponseEntity<String> login(@RequestBody LoginDTO loginDTO) {
@@ -79,40 +82,24 @@ public class UserController {
         return new ResponseEntity<User>(retVal,HttpStatus.OK);
 	}
 	
-//	@RequestMapping( value = "/test", method = RequestMethod.GET)
-	public ResponseEntity<String> register(){
-		String s = null;
-		ProcessBuilder builder = new ProcessBuilder("python","kst/sotishelper.py");
-		
-		try {
-			Process p = builder.start();
-			p.waitFor();
-			
-			 BufferedReader stdInput = new BufferedReader(new 
-	                 InputStreamReader(p.getInputStream()));
-
-            BufferedReader stdError = new BufferedReader(new 
-                 InputStreamReader(p.getErrorStream()));
-	        
-            System.out.println("Here is the standard output of the command:\n");
-            while ((s = stdInput.readLine()) != null) {
-                System.out.println(s);
-            }
-            
-            System.out.println("Here is the standard error of the command (if any):\n");
-            while ((s = stdError.readLine()) != null) {
-                System.out.println(s);
-            }
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-        return new ResponseEntity<String>("Successful register",HttpStatus.OK);
-	}
-
 	@PreAuthorize("hasAuthority('PROFESSOR_ROLE')")
 	@RequestMapping( value = "/student", method = RequestMethod.GET)
 	public ResponseEntity<ArrayList<StudentDTO>> getStudents(){
         return new ResponseEntity<ArrayList<StudentDTO>>(userService.getStudents(),HttpStatus.OK);
+	}
+	
+//	@PreAuthorize("hasAuthority('STUDENT_ROLE')")
+	@RequestMapping( value = "/status", method = RequestMethod.GET)
+	public ResponseEntity<Long> getStatus(HttpServletRequest request){
+		String token = request.getHeader("X-Auth-Token");
+		String username = jwt.getUsernameFromToken(token);
+        return new ResponseEntity<Long>(userService.getStatus(username),HttpStatus.OK);
+	}
+
+
+	@PreAuthorize("hasAuthority('ADMIN_ROLE')")
+	@RequestMapping( value = "/persistTestData", method = RequestMethod.GET)
+	public ResponseEntity<String> persistTestData(){
+        return new ResponseEntity<String>(userService.persistTestData(),HttpStatus.OK);
 	}
 }

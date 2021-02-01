@@ -7,4 +7,5 @@ public class QuestionDTO {
 	public Long id;
 	public String text;
 	public List<ChoiceDTO> choices = new ArrayList<ChoiceDTO>();
+	public ProbabilitiesDTO probs;
 }

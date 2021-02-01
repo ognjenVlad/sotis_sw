@@ -1,7 +1,5 @@
 package com.ftn.sotis.controllers;
 
-import java.util.ArrayList;
-
 import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 
@@ -17,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ftn.sotis.DTOs.GraphDTO;
+import com.ftn.sotis.DTOs.QuestionAnswerDTO;
 import com.ftn.sotis.DTOs.QuestionDTO;
-import com.ftn.sotis.entities.Node;
 import com.ftn.sotis.exceptions.EntityAlreadyExistsException;
 import com.ftn.sotis.exceptions.EntityDoesNotExistException;
 import com.ftn.sotis.exceptions.InvalidDataException;
@@ -50,17 +48,6 @@ public class KnowledgeSpaceController {
     }
 
     @RequestMapping(
-            method = RequestMethod.GET,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GraphDTO> getExam() {
-    	try {
-			return new ResponseEntity<GraphDTO>(ksService.runPisaTest(), HttpStatus.OK);
-		} catch (EntityNotFoundException e) {
-			return new ResponseEntity<GraphDTO>(new GraphDTO(), HttpStatus.BAD_REQUEST);
-		}
-    }
-
-    @RequestMapping(
     		value = "/{exam_id}",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -68,7 +55,9 @@ public class KnowledgeSpaceController {
     	try {
 			return new ResponseEntity<GraphDTO>(ksService.getRealKnowledge(exam_id), HttpStatus.OK);
 		} catch (EntityNotFoundException | InvalidDataException e) {
-			return new ResponseEntity<GraphDTO>(new GraphDTO(), HttpStatus.BAD_REQUEST);
+			GraphDTO g = new GraphDTO();
+			g.subject_title = e.getMessage();
+			return new ResponseEntity<GraphDTO>(g, HttpStatus.BAD_REQUEST);
 		}
     }
 
@@ -87,17 +76,37 @@ public class KnowledgeSpaceController {
     }
 
     @RequestMapping(
-    		value =  "/question/{exam_id}",
-            method = RequestMethod.GET,
+    		value =  "/nextQuestion",
+            method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<QuestionDTO> getNextQuestion(@PathVariable Long exam_id, HttpServletRequest request) {
-		String token = request.getHeader("Auth-Token");
+    public ResponseEntity<QuestionDTO> getNextQuestion(@RequestBody QuestionAnswerDTO answerDto, HttpServletRequest request) {
+		String token = request.getHeader("X-Auth-Token");
 		String username = jwt.getUsernameFromToken(token);
 
 		try {
-			return new ResponseEntity<QuestionDTO>(ksService.getNextQuestion(username, exam_id), HttpStatus.OK);
+			return new ResponseEntity<QuestionDTO>(ksService.getNextQuestion(username, answerDto), HttpStatus.OK);
 		} catch (Exception e) {
 			QuestionDTO q = new QuestionDTO();
+			q.text = e.getMessage();
+			q.id = -1L;
+			return new ResponseEntity<QuestionDTO>(q, HttpStatus.BAD_REQUEST);
+		}
+    }
+
+    @RequestMapping(
+    		value =  "/currentQuestion",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<QuestionDTO> getNextQuestion(@PathVariable Long examId, HttpServletRequest request) {
+		String token = request.getHeader("X-Auth-Token");
+		String username = jwt.getUsernameFromToken(token);
+
+		try {
+			return new ResponseEntity<QuestionDTO>(ksService.getCurrentQuestion(username, examId), HttpStatus.OK);
+		} catch (Exception e) {
+			QuestionDTO q = new QuestionDTO();
+			q.text = e.getMessage();
+			q.id = -1L;
 			return new ResponseEntity<QuestionDTO>(q, HttpStatus.BAD_REQUEST);
 		}
     }

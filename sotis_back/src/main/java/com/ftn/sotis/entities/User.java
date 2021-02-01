@@ -38,7 +38,7 @@ public class User {
 	@Column(nullable = true)
 	private String lastName;
 	
-	@OneToOne
+	@OneToOne(cascade = CascadeType.ALL)
 	private ExamResult activeExam;
 	
 	@Column

@@ -1,6 +1,7 @@
 package com.ftn.sotis.entities;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.persistence.CascadeType;
@@ -10,6 +11,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 @Entity
 public class Exam {
@@ -23,7 +25,10 @@ public class Exam {
 	
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<Question> questions;
-	
+
+	@Transient
+	private HashMap<String,Integer> patternOccurrences = new HashMap<String,Integer>();
+
 	public Exam(){
 		this.questions = new ArrayList<Question>();
 	}
@@ -40,7 +45,21 @@ public class Exam {
 	public void addQuestion(String text, ArrayList<Choice> choices) {
 		this.addQuestion(text, choices);
 	}
+	
+	public boolean isCorrectAnswer(Long questionId, Long choiceId) {
+		for (Question q : questions) {
+			if (q.getId().equals(questionId)) {
+				return q.isCorrect(choiceId);
+			}
+		}
+		return false;
+	}
 
+	public HashMap<String,Double> calculateInitialProbabilities() {
+		
+		return null;
+	}
+	
 	public Long getId() {
 		return id;
 	}

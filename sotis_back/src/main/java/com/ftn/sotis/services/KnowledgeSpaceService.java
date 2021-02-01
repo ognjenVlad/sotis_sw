@@ -12,6 +12,7 @@ import com.ftn.sotis.DTOs.ChoiceDTO;
 import com.ftn.sotis.DTOs.EdgeDTO;
 import com.ftn.sotis.DTOs.GraphDTO;
 import com.ftn.sotis.DTOs.NodeDTO;
+import com.ftn.sotis.DTOs.QuestionAnswerDTO;
 import com.ftn.sotis.DTOs.QuestionDTO;
 import com.ftn.sotis.entities.Choice;
 import com.ftn.sotis.entities.Edge;
@@ -65,6 +66,9 @@ public class KnowledgeSpaceService {
 	@Autowired
 	EdgeRepository edgeRep;
 	
+	@Autowired
+	ExamResultRepository examResultRep;
+	
 	public GraphDTO addExpectedKnowledge(GraphDTO graphDto) throws InvalidDataException, EntityAlreadyExistsException {
 		if (graphDto.subject_id == null) throw new InvalidDataException("Subject id must be defined");
 		Subject subject =  subRep.findById(graphDto.subject_id).orElse(null);
@@ -74,7 +78,8 @@ public class KnowledgeSpaceService {
 		if (g == null) throw new InvalidDataException("Graph not defined for this exam");
 		
 		HashMap<Long, Node> nodesMap = new HashMap<Long, Node>();
-
+		
+		g.setRoot(graphDto.nodes.get(0).id);
 		g.setEdges(new ArrayList<Edge>());
 		
 		for (Node n : g.getNodes()) {
@@ -117,7 +122,7 @@ public class KnowledgeSpaceService {
 		Exam exam = examRep.findById(exam_id).orElse(null);
 		
 		if (exam == null) throw new InvalidDataException("Exam with given ID not found");
-		
+		if (exam.getSubject().getDomain().getExpectedGraph().getEdges().size() == 0) throw new InvalidDataException("Expected graph not defined");
 		ArrayList<String> results = new ArrayList<String>(); 
 		ExamResult helpER = null;
 
@@ -176,7 +181,6 @@ public class KnowledgeSpaceService {
 	}
 
 	private void evaluateEdgeString(Graph g, HashMap<Long, Node> nodes, String edgeStr) {
-		System.out.println(edgeStr);
 		String node1_id = edgeStr.split("\\.")[0];
 		String node2_id = edgeStr.split("\\.")[1];
 		
@@ -188,58 +192,68 @@ public class KnowledgeSpaceService {
 		
 		g.addEdge(node1, node2);
 	}
-
-	public GraphDTO runPisaTest() {
-		Graph g = new Graph();
-		String s = null;
-		ProcessBuilder builder = new ProcessBuilder("python","kst/pisaTest.py");
+	
+	public QuestionDTO getCurrentQuestion(String username, Long examId) throws InvalidDataException {
+		if (examId == null) throw new InvalidDataException("Exam id not defined");
+		Exam exam = examRep.findById(examId).orElse(null);
+		Graph g = exam.getSubject().getDomain().getExpectedGraph();
+		if (g.isValid()) throw new InvalidDataException("Expected knowledge not defined for this exam");
 		
-		try {
-			Process p = builder.start();
-			p.waitFor();
-			
-			BufferedReader stdInput = new BufferedReader(new 
-	                 InputStreamReader(p.getInputStream()));
-	        
-			String[] pair = new String[2];
-			pair = stdInput.readLine().split("\\.");
-			
-			Node temp_n1 = new Node(Long.parseLong(pair[0]));
-			Node temp_n2 = new Node(Long.parseLong(pair[1]));
-			
-			g.addNode(temp_n1);
-			g.addNode(temp_n2);
-			g.addEdge(temp_n1, temp_n2);
-			
-            while ((s = stdInput.readLine()) != null) {
-    			pair = s.split("\\.");
-    			temp_n1 = new Node(Long.parseLong(pair[0]));
-    			temp_n2 = new Node(Long.parseLong(pair[1]));
-    			g.addNode(temp_n1);
-    			g.addNode(temp_n2);
-    			g.addEdge(temp_n1, temp_n2);
-            }
-            
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		User stud = userRep.findByUsername(username);
+		ExamResult activeExam= stud.getActiveExam();
+		Question q = g.getNextQuestion(exam, activeExam.getQuestionsAnswered())[1];
 		
-		return this.castToDTO(g);
+		return this.castToDTO(q);
 	}
 	
-	public QuestionDTO getNextQuestion(String username, Long exam_id) throws InvalidDataException, EntityDoesNotExistException {
+	public QuestionDTO getNextQuestion(String username, QuestionAnswerDTO questionAnswerDto) throws InvalidDataException, EntityDoesNotExistException {
 		User stud = userRep.findByUsername(username);
 		
-		if (exam_id == null) return null;
-		Exam exam = examRep.findById(exam_id).orElse(null);
+		if (questionAnswerDto.examId == null) throw new InvalidDataException("Exam id not defined");
+		Exam exam = examRep.findById(questionAnswerDto.examId).orElse(null);
 		if (exam == null) throw new EntityDoesNotExistException("Exam with given id not found");
 		
-		Integer questionsAnswered = stud.getActiveExam().getQuestionsAnswered();
-		
 		Graph g = exam.getSubject().getDomain().getExpectedGraph();
-		Question[] questionPair = g.getNextQuestion(exam, questionsAnswered);
+		if (g.isValid()) throw new InvalidDataException("Expected knowledge not defined for this exam");
+		ExamResult activeExam= stud.getActiveExam();
 		
-		return this.castToDTO(questionPair[1]);
+		
+		if (activeExam == null) {
+			activeExam = new ExamResult(exam, stud);
+			activeExam.setQuestionsAnswered(0);
+			Question q = g.getNextQuestion(exam, 0)[1];
+			stud.setActiveExam(activeExam);
+			if (q == null) throw new InvalidDataException("Something went wrong");
+			
+			userRep.save(stud);
+			return this.castToDTO(q);
+		}
+		
+		Integer questionsAnswered = activeExam.getQuestionsAnswered();
+		activeExam.setQuestionsAnswered(questionsAnswered + 1);
+		questionsAnswered++;
+		
+		
+		if (!activeExam.isFinished()) {
+			Question[] qs = g.getNextQuestion(exam, questionsAnswered);
+			boolean correct = exam.isCorrectAnswer(questionAnswerDto.questionId, questionAnswerDto.choiceId);
+			activeExam.addAnswer(qs[0], correct);
+			
+			userRep.save(stud);
+			
+			return this.castToDTO(qs[1]);
+		}
+		
+		Question[] qs = g.getNextQuestion(exam, questionsAnswered);
+		boolean correct = exam.isCorrectAnswer(questionAnswerDto.questionId, questionAnswerDto.choiceId);
+		activeExam.addAnswer(qs[0], correct);
+		userRep.save(stud);
+		examResultRep.save(activeExam);
+		stud.setActiveExam(null);
+		Question q = new Question();
+		q.setText("Exam finished");
+		q.setId(-1L);
+		return this.castToDTO(q);
 	}
 	
 	private GraphDTO castToDTO(Graph g) {
@@ -247,7 +261,7 @@ public class KnowledgeSpaceService {
 		Long qId;
 		for (Node node : g.getNodes()) {
 			qId = node.getQuestion() == null ? -1L : node.getQuestion().getId();
-			retVal.nodes.add(new NodeDTO(node.getId(),"test-text", qId));
+			retVal.nodes.add(new NodeDTO(node.getId(),node.getQuestion().getText(), qId));
 		}
 		for (Edge edge : g.getEdges()) {
 			retVal.edges.add(new EdgeDTO(edge.getSource().getId(),edge.getDestination().getId(),edge.getStatus()));
@@ -259,10 +273,11 @@ public class KnowledgeSpaceService {
 	private QuestionDTO castToDTO(Question question) {
 		QuestionDTO retVal = new QuestionDTO();
 		retVal.text = question.getText();
+		retVal.id = question.getId();
 		
 		retVal.choices = new ArrayList<ChoiceDTO>();
 		for (Choice choice : question.getChoices()) {
-			retVal.choices.add(new ChoiceDTO(choice.getText(), null));
+			retVal.choices.add(new ChoiceDTO(choice.getId(),choice.getText(), null));
 		}
 		
 		return retVal;

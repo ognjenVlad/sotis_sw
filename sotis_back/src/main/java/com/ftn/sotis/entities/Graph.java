@@ -99,20 +99,29 @@ public class Graph {
 	public Question[] getNextQuestion(Exam exam, Integer questionsAnswered) {
 		this.sortNodesBfsOrder();
 		
-		// TODO: Fix logic of getting [ 'current' , 'next' ] questions
+		Question[] retVal = new Question[2];
+		
+		retVal[0] = null;
+		retVal[1] = null;
 		
 		int questionsCounter = 0;
 		for (Node n : this.bfsNodesSorted) {
 			if (exam.getQuestions().contains(n.getQuestion())) {
-				if (questionsCounter < questionsAnswered) {
+				if (questionsAnswered == 0) {
+					retVal[1] = n.getQuestion();
+					return retVal;
+				}
+				if (questionsCounter == questionsAnswered) {
+					retVal[1] = n.getQuestion();
+					return retVal;
+				}else if (questionsCounter < questionsAnswered){
+					retVal[0] = n.getQuestion();
 					questionsCounter++;
-				}else {
-					
 				}
 			}
 		}
 
-		return null;
+		return retVal;
 	}
 	
 	private void sortNodesBfsOrder() {
@@ -160,8 +169,10 @@ public class Graph {
 	public boolean isValid() {
 		ArrayList<Node> visited = new ArrayList<Node>();
 		visited.add(this.root);
-		// Test it
-		return !this.isCyclic(root, visited) && isConnected();
+		this.sortNodesBfsOrder();
+		boolean isOneway = this.bfsNodesSorted.size() == this.nodes.size();
+
+		return !this.isCyclic(root, visited) && isConnected() && isOneway;
 	}
 	
 	private boolean isConnected() {
@@ -198,6 +209,15 @@ public class Graph {
 		
 		return false;
 	} 
+	
+	public void setRoot(Long id) {
+		for (Node n : this.nodes) {
+			if (n.getId().equals(id)) {
+				this.root = n;
+				return;
+			}
+		}
+	}
 	
 	/**
 	 * Return new graph with edges from both this and other graph.

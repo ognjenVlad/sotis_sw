@@ -46,6 +46,15 @@ public class Question {
 	public void addChoice(String text, Boolean correct) {
 		this.choices.add(new Choice(text,correct));
 	}
+	
+	public boolean isCorrect(Long choiceId) {
+		for (Choice c : choices) {
+			if (c.getId().equals(choiceId)) {
+				return c.getCorrect();
+			}
+		}
+		return false;
+	}
 
 	public Long getId() {
 		return id;
