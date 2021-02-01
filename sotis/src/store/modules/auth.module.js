@@ -34,11 +34,9 @@ export const actions = {
     localStorage.removeItem('authtoken');
     commit('setUser', null);
   },
-  async REGISTER ({ commit }, data) {
-    const user = await authService.register(data.axios, data)
-    if (user) {
-      commit('setUser', JSON.parse(user))
-    }
+  // eslint-disable-next-line no-unused-vars
+  async REGISTER ({commit}, data) {
+    return await authService.register(data.axios, data)
   }
 }
 

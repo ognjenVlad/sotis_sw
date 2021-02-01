@@ -29,6 +29,12 @@
         placeholder="Last name"
         required
       ></b-form-input>
+      <b-form-input
+        v-if="role === 'STUDENT_ROLE'"
+        v-model="studentId"
+        placeholder="ID"
+        required
+      ></b-form-input>
       <b-form-select v-model="role">
         <option value="STUDENT_ROLE">Student</option>
         <option value="PROFESSOR_ROLE">Professor</option>
@@ -54,23 +60,26 @@ export default {
           username: '',
           password: '',
           email: '',
-          role: '',
+          studentId: '',
+          role: 'STUDENT_ROLE',
           showErrors: false,
           result: null
       }
   },
   methods: {
-    register () {
+    async register () {
       try {
-        this.result = this.$store.dispatch('REGISTER', {
+        this.result = await this.$store.dispatch('REGISTER', {
           axios: this.axios,
           username: this.username,
           password: this.password,
           lastName: this.lastName,
           firstName: this.firstName,
+          studentId: this.studentId,
           role: this.role,
           email: this.email
         })
+        console.log(this.result)
       } catch (e) {
         this.showErrors = true
         console.log(e)

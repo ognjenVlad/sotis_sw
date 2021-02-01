@@ -11,6 +11,10 @@ module.exports = {
                 '@constants': path.resolve(__dirname, 'src/constants/'),
                 '@assets': path.resolve(__dirname, 'src/assets/')
             }
-        }
+        },
+    },
+    devServer: {
+        proxy: "http://192.168.0.20:8080/"
+            
     }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div style="margin-bottom: 2rem">
+  <div>
     <b-navbar toggleable="lg" type="dark" variant="dark">
       <b-navbar-brand><router-link to="/">Testing Platform</router-link></b-navbar-brand>
 
@@ -9,8 +9,11 @@
         <b-navbar-nav>
           <b-nav-item v-if="!user"><router-link to="/login">Login</router-link></b-nav-item>
           <b-nav-item v-if="isAdmin"><router-link  to="/register">Add User</router-link></b-nav-item>
-          <b-nav-item v-if="isProfessor"><router-link to="/domains">Domains</router-link></b-nav-item>
-          <b-nav-item v-if="isProfessor || isAdmin"><router-link to="/add-subject">Add subject</router-link></b-nav-item>
+          <b-nav-item><router-link to="/domains">Subjects</router-link></b-nav-item>
+          <!-- <b-nav-item v-if="isProfessor || isAdmin"><router-link to="/add-subject">Add subject</router-link></b-nav-item> -->
+          <b-nav-item><router-link to="/exams">Exams</router-link></b-nav-item>
+          <!-- <b-nav-item><router-link to="/graph">Show Graph</router-link></b-nav-item> -->
+          <!-- <b-nav-item><router-link to="/add-graph">Add Graph</router-link></b-nav-item> -->
         </b-navbar-nav>
 
         <b-navbar-nav class="ml-auto">
